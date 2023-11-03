@@ -11,11 +11,21 @@ confusion_scores(preds, target, multidim_average = "global")
 
 \item{target}{Target label}
 
-\item{multidim_average}{Average model: global-average across all accuracies, samplewise-average across the all but the first dimensions (calculated independently for each sample)}
+\item{multidim_average}{Average model: global-average across all accuracies,
+samplewise-average across the all but the first dimensions (calculated
+independently for each sample)}
 }
 \value{
-A list contains matrix-confusion matrix, tp-true positives, fn-false negatives, fp-false positives, tn-true negatives
+A list contains matrix-confusion matrix, tp-true positives,
+fn-false negatives, fp-false positives, tn-true negatives
 }
 \description{
-Calculate confusion matrix
+Calculate confusion matrix for a given predicted set of
+values and corresponding targets
+}
+\examples{
+
+y_pred = c(1,1,0,1,1)
+y_target = c(0,1,0,1,0)
+confusion_scores(y_pred, y_target)
 }

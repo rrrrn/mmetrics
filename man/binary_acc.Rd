@@ -7,17 +7,27 @@
 binary_acc(preds, target, threshold = 0.5, multidim_average = "global")
 }
 \arguments{
-\item{preds}{Predicted label or predicted probability between 0 and 1, same shape as target label}
+\item{preds}{Predicted label or predicted probability between 0 and 1,
+same shape as target label}
 
 \item{target}{Target label}
 
-\item{threshold}{The numerical cut-off between 0 and 1 to transform predicted probability into binary predicted labels}
+\item{threshold}{The numerical cut-off between 0 and 1 to transform
+predicted probability into binary predicted labels}
 
-\item{multidim_average}{Average model: global-average across all accuracies, samplewise-average across the all but the first dimensions (calculated independently for each sample)}
+\item{multidim_average}{Average model: global-average across all accuracies,
+samplewise-average across the all but the first dimensions (calculated
+independently for each sample)}
 }
 \value{
-Binary accuracy for preds and target, with format dictated by multidim_average command.
+Binary accuracy for preds and target, with format dictated by
+multidim_average command.
 }
 \description{
-Calculate the binary class accuracy
+Calculate the binary class accuracy for a given predicted set of
+values and corresponding targets
+}
+\examples{
+binary_acc(c(0.8, 0.2), c(1,1), 0.3)
+binary_acc(c(1,1), c(0,1))
 }
