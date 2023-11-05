@@ -3,3 +3,4 @@
 export(binary_acc)
 export(confusion_scores)
 export(multiclass_acc)
+export(multiclass_confusion_scores)
