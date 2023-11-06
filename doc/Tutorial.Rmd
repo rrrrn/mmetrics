@@ -1,0 +1,26 @@
+---
+title: "mmetrics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mmetrics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mmetrics)
+```
+
+This vignette compares `mmetrics` functions to their R equivalents.
+
+```{r}
+
+```
+
