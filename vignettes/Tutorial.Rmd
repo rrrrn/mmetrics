@@ -1,0 +1,60 @@
+---
+title: "mmetrics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mmetrics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{NHANES}
+  %\VignetteDepends{randomForest}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The `mmetrics` package contains functions necessary to assess classification performance for statistical modelings, in particular, when encountering multi-class classification problems or different types of averaging methods of metric computation are of interest. This vignette compares `mmetrics` functions to their R equivalents in `caret`.
+
+```{r setup}
+library(mmetrics)
+library(NHANES)
+library(randomForest)
+```
+
+There are a range of classification metric computation customization options available for users of the package. To demonstrate this function, the NHANES data from `NHANES` will be used.
+
+In particular, we formulate our problem as building predictive modeling based on logistic regression model. The goal is to predict `Depressed` (categorical variable) from `SleepHrsNight`, `BMI`,`Poverty` and `PhysActive`, as well as demographic variable: `Age` and `Gender`.
+
+First we filter out participants' with NA value and partition the dataset into training and testing.
+
+```{r}
+# filter out records with NA value
+df <- NHANES[,c("Depressed", "SleepHrsNight", "BMI", "PhysActive", "Poverty", "Age", "Gender")]
+df <- df[apply(!is.na(df), 1, all),]
+
+# split train and test set
+set.seed(345)
+n <- nrow(df)
+train_id <- sample(1:n, floor(0.8*n))
+test_id <- seq(1, n)[!(seq(1,n) %in% train_id)]
+
+train_df <- df[train_id, ]
+test_df <- df[test_id, 2:ncol(df)]
+target <- df[test_id, 1][[1]]
+```
+
+Then we fit a multinomial logistic regression model on training dataset and obtain its prediction on test dataset for model performance assessment.
+
+```{r}
+set.seed(345)
+model <- randomForest(Depressed~., train_df)
+preds_prob <- predict(model, test_df, type = "prob")
+preds <- predict(model, test_df)
+```
+```{r}
+
+```
+

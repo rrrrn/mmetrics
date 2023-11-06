@@ -64,7 +64,6 @@ confusion_scores <- function(preds, target, multidim_average="global"){
 #' @param multidim_average Average model: global-average across all accuracies,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
-#' @param num_class The number of classes involved in the task
 #' @param class If multidim_average is set to "samplewise", this param specifies
 #' particular class of interest to compute confusion matrix
 #'
@@ -73,6 +72,11 @@ confusion_scores <- function(preds, target, multidim_average="global"){
 #' only the confusion matrix for particular class-of-interest, as well as TP, TN,
 #' FN, FP for all samples will be returned in a list.
 #' @export
+#' @examples
+#'
+#' y_pred = c("A","B","C","A","B")
+#' y_target = rep("A", 5)
+#' multiclass_confusion_scores(y_pred, y_target, class="A")
 multiclass_confusion_scores <- function(preds, target, class=NULL,
                                         multidim_average = "global"){
 

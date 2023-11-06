@@ -8,7 +8,7 @@ multiclass_confusion_scores(
   preds,
   target,
   class = NULL,
-  multidim_averge = "global"
+  multidim_average = "global"
 )
 }
 \arguments{
@@ -22,8 +22,6 @@ particular class of interest to compute confusion matrix}
 \item{multidim_average}{Average model: global-average across all accuracies,
 samplewise-average across the all but the first dimensions (calculated
 independently for each sample)}
-
-\item{num_class}{The number of classes involved in the task}
 }
 \value{
 If under "global" average mode, the cross-sample multiclass confusion
@@ -34,4 +32,10 @@ FN, FP for all samples will be returned in a list.
 \description{
 Calculate confusion matrix for a given predicted set of
 values and corresponding targets in multiclass classification task
+}
+\examples{
+
+y_pred = c("A","B","C","A","B")
+y_target = rep("A", 5)
+multiclass_confusion_scores(y_pred, y_target, class="A")
 }

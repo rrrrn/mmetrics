@@ -1,4 +1,4 @@
-test_that("binary accuracy function works", {
+test_that("binary accuracy function", {
   # global
   pred = c(1,0)
   target = c(1,1)
@@ -14,3 +14,5 @@ test_that("binary accuracy function works", {
   target = t(pred)
   expect_equal(binary_acc(pred, target, multidim_average = "samplewise"), c(0.5,0.5))
 })
+
+

@@ -9,6 +9,11 @@ test_that("confusion_scores", {
   result = confusion_scores(preds, target)
   expect_equal((result$tp==0)&((result$fn==0)&(result$fp==4)|(result$fn==4)&(result$fp==0))&(result$tn==0), TRUE)
 
+  preds = rep("A", 4)
+  target = rep("B", 4)
+  result = confusion_scores(preds, target)
+  expect_equal((result$tp==0)&((result$fn==0)&(result$fp==4)|(result$fn==4)&(result$fp==0))&(result$tn==0), TRUE)
+
   preds = matrix(rep(c(1,0, 0), 3), 3, 3)
   target = t(preds)
   result = confusion_scores(preds, target, multidim_average = "samplewise")
