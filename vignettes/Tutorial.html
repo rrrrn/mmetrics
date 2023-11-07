@@ -12,7 +12,7 @@
 
 
 
-<title>accuracy</title>
+<title>mmetrics</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,11 +336,52 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">accuracy</h1>
+<h1 class="title toc-ignore">mmetrics</h1>
 
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(mmetrics)</span></code></pre></div>
+<p>The <code>mmetrics</code> package contains functions necessary to
+assess classification performance for statistical modelings, in
+particular, when encountering multi-class classification problems or
+different types of averaging methods of metric computation are of
+interest. This vignette compares <code>mmetrics</code> functions to
+their R equivalents in <code>caret</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(mmetrics)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(NHANES)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; randomForest 4.7-1.1</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; Type rfNews() to see new features/changes/bug fixes.</span></span></code></pre></div>
+<p>There are a range of classification metric computation customization
+options available for users of the package. To demonstrate this
+function, the NHANES data from <code>NHANES</code> will be used.</p>
+<p>In particular, we formulate our problem as building predictive
+modeling based on logistic regression model. The goal is to predict
+<code>Depressed</code> (categorical variable) from
+<code>SleepHrsNight</code>, <code>BMI</code>,<code>Poverty</code> and
+<code>PhysActive</code>, as well as demographic variable:
+<code>Age</code> and <code>Gender</code>.</p>
+<p>First we filter out participants’ with NA value and partition the
+dataset into training and testing.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># filter out records with NA value</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>df <span class="ot">&lt;-</span> NHANES[,<span class="fu">c</span>(<span class="st">&quot;Depressed&quot;</span>, <span class="st">&quot;SleepHrsNight&quot;</span>, <span class="st">&quot;BMI&quot;</span>, <span class="st">&quot;PhysActive&quot;</span>, <span class="st">&quot;Poverty&quot;</span>, <span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Gender&quot;</span>)]</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>df <span class="ot">&lt;-</span> df[<span class="fu">apply</span>(<span class="sc">!</span><span class="fu">is.na</span>(df), <span class="dv">1</span>, all),]</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># split train and test set</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>train_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="fu">floor</span>(<span class="fl">0.8</span><span class="sc">*</span>n))</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>test_id <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, n)[<span class="sc">!</span>(<span class="fu">seq</span>(<span class="dv">1</span>,n) <span class="sc">%in%</span> train_id)]</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>train_df <span class="ot">&lt;-</span> df[train_id, ]</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>test_df <span class="ot">&lt;-</span> df[test_id, <span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(df)]</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>target <span class="ot">&lt;-</span> df[test_id, <span class="dv">1</span>][[<span class="dv">1</span>]]</span></code></pre></div>
+<p>Then we fit a multinomial logistic regression model on training
+dataset and obtain its prediction on test dataset for model performance
+assessment.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>preds_prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, test_df)</span></code></pre></div>
 
 
 

@@ -1,7 +1,7 @@
 #' confusion_scores
 #'
 #' @description Calculate confusion matrix for a given predicted set of
-#' values and corresponding targets, mainly suitable for binary classtypeification task.
+#' values and corresponding targets, mainly suitable for binary classification task.
 #'
 #' @param preds Predicted label, same shape as target label
 #' @param target Target label

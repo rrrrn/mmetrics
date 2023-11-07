@@ -7,7 +7,7 @@
 multiclass_confusion_scores(
   preds,
   target,
-  class = NULL,
+  classtype = NULL,
   multidim_average = "global"
 )
 }
@@ -16,7 +16,7 @@ multiclass_confusion_scores(
 
 \item{target}{Target label}
 
-\item{class}{If multidim_average is set to "samplewise", this param specifies
+\item{classtype}{If multidim_average is set to "samplewise", this param specifies
 particular class of interest to compute confusion matrix}
 
 \item{multidim_average}{Average model: global-average across all accuracies,
@@ -37,5 +37,5 @@ values and corresponding targets in multiclass classification task
 
 y_pred = c("A","B","C","A","B")
 y_target = rep("A", 5)
-multiclass_confusion_scores(y_pred, y_target, class="A")
+multiclass_confusion_scores(y_pred, y_target, classtype="A")
 }

@@ -20,9 +20,7 @@ independently for each sample)}
 
 \item{average}{Defines the reduction that is applied over labels.
 Micro-sum over all class labels.
-Macro-calculate class label-wise statistics and then take the average.
-The parameter average makes an effect in calculation only when the accuracy
-is required on a global level}
+Macro-calculate class label-wise statistics and then take the average.}
 }
 \value{
 Multiclass accuracy for preds and target, with format dictated by
