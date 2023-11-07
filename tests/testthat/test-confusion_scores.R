@@ -40,4 +40,9 @@ test_that("multiclass confusion_scores", {
   target = t(preds)
   result = multiclass_confusion_scores(preds, target, multidim_average = "samplewise", class=1)
   expect_equal(result$tp, c(2, 0, 0, 2))
+
+  preds = rep(1,4)
+  target = preds
+  result = multiclass_confusion_scores(preds, target)
+  expect_equal(result[[1]], 4)
 })

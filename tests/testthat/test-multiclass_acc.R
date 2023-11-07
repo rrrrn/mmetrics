@@ -18,6 +18,6 @@ test_that("multiclass_acc function", {
 
   preds = matrix(c(1,2,3,1,1,3),2,3)
   target = matrix(c(1,1,3,3,1,1),2,3)
-  result = multiclass_acc(preds, target, multidim_average = "samplewise")
+  result = multiclass_acc(preds, target, multidim_average = "samplewise", average="micro")
   expect_equal(result, c(1, 0))
 })

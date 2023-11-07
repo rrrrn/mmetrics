@@ -52,8 +52,6 @@ binary_acc <- function(preds, target, threshold=0.5, multidim_average = "global"
 #' @param average Defines the reduction that is applied over labels.
 #' Micro-sum over all class labels.
 #' Macro-calculate class label-wise statistics and then take the average.
-#' The parameter average makes an effect in calculation only when the accuracy
-#' is required on a global level
 #' @param multidim_average Average model: global-average across all accuracies,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
@@ -83,20 +81,38 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
   stopifnot(dim(preds)==dim(target))
   stopifnot(num_class>0)
 
-  if(multidim_average=="global"&average=="micro"){
-    return(mean(preds==target))
-  }
-  else if(multidim_average=="global"&average=="macro"){
-    label_acc = numeric(num_class)
-    # label-wise accuracy calculation
-    for(i in 1:num_class){
-      targetnew <- target[target==ele_all[i]]
-      predsnew <- preds[target==ele_all[i]]
-      label_acc[i] <- ifelse(length(targetnew==predsnew)>0, mean(targetnew==predsnew),0)
+  # generalized steps for computing scores
+  comp_assist = function(datamtx, average){
+    if(length(dim(datamtx))==1|is.null(dim(datamtx))){
+      n = length(datamtx)/2
+      preds = datamtx[1:n]
+      target = datamtx[(n+1):(2*n)]
+    }
+    else{
+      n = ncol(datamtx)/2
+      preds = datamtx[,1:n]
+      target = datamtx[,(n+1):(2*n)]
+    }
+
+    if(average=="micro"){
+      return(mean(preds==target))
+    }
+    else if(average=="macro"){
+      label_acc = numeric(num_class)
+      # label-wise accuracy calculation
+      for(i in 1:num_class){
+        targetnew <- target[target==ele_all[i]]
+        predsnew <- preds[target==ele_all[i]]
+        label_acc[i] <- ifelse(length(targetnew==predsnew)>0, mean(targetnew==predsnew),0)
+      }
     }
     return(mean(label_acc))
   }
+
+  if(multidim_average=="global"){
+    return(comp_assist(cbind(preds,target), average))
+  }
   else if(multidim_average=="samplewise"){
-    return(apply(target==preds, 1, mean))
+    return(apply(cbind(preds,target), 1, comp_assist, average = average))
   }
 }
