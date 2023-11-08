@@ -31,8 +31,14 @@ confusion_scores <- function(preds, target, multidim_average="global"){
   }
   else{
   # compute confusion matrix value
-  ele1 = unique(ele_all)[1]
-  ele2 = unique(ele_all)[2]
+    if(is.logical(ele_all)){
+      ele1 = TRUE
+      ele2 = FALSE
+    }
+    else{
+      ele1 = unique(ele_all)[1]
+      ele2 = unique(ele_all)[2]
+    }
   tp = ((target == preds) & (target == ele1))
   fn = ((target != preds) & (target == ele1))
   fp = ((target != preds) & (target == ele2))
@@ -79,8 +85,12 @@ confusion_scores <- function(preds, target, multidim_average="global"){
 #' multiclass_confusion_scores(y_pred, y_target, classtype="A")
 multiclass_confusion_scores <- function(preds, target, classtype=NULL,
                                         multidim_average = "global"){
-
-  ele_all <- factor(unique(c(target, preds))) # element in the union of two vec
+  if(!is.factor(preds)){
+    ele_all <- factor(unique(c(target, as.vector(preds)))) # element in the union of two vec
+  }
+  else{
+    ele_all <- unique(c(levels(target), levels(preds1)))
+  }
   stopifnot(length(ele_all)>0)
   stopifnot(length(target)==length(preds))
 

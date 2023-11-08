@@ -346,11 +346,12 @@ particular, when encountering multi-class classification problems or
 different types of averaging methods of metric computation are of
 interest. This vignette compares <code>mmetrics</code> functions to
 their R equivalents in <code>caret</code>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(mmetrics)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(NHANES)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; randomForest 4.7-1.1</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; Type rfNews() to see new features/changes/bug fixes.</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(mmetrics)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(NHANES)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; randomForest 4.7-1.1</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; Type rfNews() to see new features/changes/bug fixes.</span></span></code></pre></div>
 <p>There are a range of classification metric computation customization
 options available for users of the package. To demonstrate this
 function, the NHANES data from <code>NHANES</code> will be used.</p>
@@ -360,6 +361,8 @@ modeling based on logistic regression model. The goal is to predict
 <code>SleepHrsNight</code>, <code>BMI</code>,<code>Poverty</code> and
 <code>PhysActive</code>, as well as demographic variable:
 <code>Age</code> and <code>Gender</code>.</p>
+<div id="model-fitting" class="section level2">
+<h2>Model fitting</h2>
 <p>First we filter out participants’ with NA value and partition the
 dataset into training and testing.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># filter out records with NA value</span></span>
@@ -374,14 +377,106 @@ dataset into training and testing.</p>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>train_df <span class="ot">&lt;-</span> df[train_id, ]</span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>test_df <span class="ot">&lt;-</span> df[test_id, <span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(df)]</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>target <span class="ot">&lt;-</span> df[test_id, <span class="dv">1</span>][[<span class="dv">1</span>]]</span></code></pre></div>
-<p>Then we fit a multinomial logistic regression model on training
-dataset and obtain its prediction on test dataset for model performance
-assessment.</p>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>target <span class="ot">&lt;-</span> df[test_id, <span class="dv">1</span>]</span></code></pre></div>
+<p>Often times, we are interested in fitting more than one model and
+compare their performance in hope of obtaining a more predictive model.
+Hence, suppose we have two different random forest models under
+different random seed for a same classification task.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>preds_prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, test_df)</span></code></pre></div>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>model1 <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df, <span class="at">ntree=</span><span class="dv">10</span>, <span class="at">replace=</span><span class="cn">FALSE</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>preds_prob1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>preds1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, test_df)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df, <span class="at">ntree=</span><span class="dv">200</span>,<span class="at">replace=</span><span class="cn">FALSE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>preds_prob2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model2, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>preds2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model2, test_df)</span></code></pre></div>
+</div>
+<div id="model-performance-assessment" class="section level2">
+<h2>Model performance assessment</h2>
+<div id="accuracy" class="section level3">
+<h3>Accuracy</h3>
+<p>To calculate classification accuracy, if there is a particular class
+is of interest, then <code>binary_acc</code> can be applied to calculate
+class-specific accuracy scores.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>e_s1 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds1<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;Most&quot;</span>); e_r1 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds2<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;Most&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>e_s2 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds1<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;Several&quot;</span>); e_r2 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds2<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;Several&quot;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>e_s3 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds1<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;None&quot;</span>); e_r3 <span class="ot">=</span> <span class="fu">binary_acc</span>(preds2<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;None&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">model1 =</span> <span class="fu">c</span>(e_s1, e_s2, e_s3), <span class="at">model2 =</span> <span class="fu">c</span>(e_r1, e_r2, e_r3), <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Most&quot;</span>, <span class="st">&quot;Several&quot;</span>, <span class="st">&quot;None&quot;</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;            model1    model2</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; Most    0.9595142 0.9651822</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; Several 0.8348178 0.8291498</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; None    0.1854251 0.1829960</span></span></code></pre></div>
+<p>To obtain an overall performance regarding classification accuracy,
+<code>multiclass-acc</code> offers two options of averaging
+classification performance across different class, where
+<code>micro</code> computes global average and <code>macro</code>
+computes averaged accuracies of all labels. When the ground-truth
+classes of target values are imbalanced, analyst should consider using
+<code>macro</code> average to mitigate bias introduced by dominant
+class. Note that in multiclass accuracy calculation, one-versus-the-rest
+does not apply there anymore.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">table</span>(target)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; target</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;    None Several    Most </span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;     983     185      67</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>mic_e_s <span class="ot">=</span> <span class="fu">multiclass_acc</span>(preds1, target)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>mac_e_s <span class="ot">=</span> <span class="fu">multiclass_acc</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>mic_e_r <span class="ot">=</span> <span class="fu">multiclass_acc</span>(preds2, target)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>mac_e_r <span class="ot">=</span> <span class="fu">multiclass_acc</span>(preds2, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">model1 =</span> <span class="fu">c</span>(mic_e_s, mac_e_s), <span class="at">model2 =</span> <span class="fu">c</span>(mic_e_r, mac_e_r), <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Micro Average&quot;</span>, <span class="st">&quot;Macro Average&quot;</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;                  model1    model2</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; Micro Average 0.8680162 0.8753036</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.0000000 0.0000000</span></span></code></pre></div>
+</div>
+<div id="confusion-scores" class="section level3">
+<h3>Confusion Scores</h3>
+<p>To compute the confusion matrices and corresponding scores, we can
+use either <code>confusion_scores</code> to obtain binary or
+class-specific result, or use <code>multiclass_confusion_scores</code>
+to get the contingency table or class-specific confusion matrices.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## class specific</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>mtx1 <span class="ot">=</span> <span class="fu">confusion_scores</span>(preds1<span class="sc">==</span><span class="st">&quot;Most&quot;</span>, target<span class="sc">==</span><span class="st">&quot;Most&quot;</span>)<span class="sc">$</span>matrix</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>mtx2 <span class="ot">=</span> <span class="fu">multiclass_confusion_scores</span>(preds1, target, <span class="at">classtype =</span> <span class="st">&quot;Most&quot;</span>)<span class="sc">$</span>matrix</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="fu">stopifnot</span>(mtx1<span class="sc">==</span>mtx2); mtx1</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt;      [,1] [,2]</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; [1,]   21    4</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; [2,]   46 1164</span></span></code></pre></div>
+<p>Or if not specify the class, <code>multiclass_confusion_scores</code>
+returns a multiclass contingency table</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">multiclass_confusion_scores</span>(preds1, target)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt;          target</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; preds     None Several Most</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;   None     967      98   40</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;   Several   15      84    6</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;   Most       1       3   21</span></span></code></pre></div>
+</div>
+<div id="precision-scores" class="section level3">
+<h3>Precision scores</h3>
+<p>To figure out how capable the model is in their positively-predicted
+cases, <code>binary_precision</code> carries out the computation in
+binary classification cases. Predicted probability can also be served as
+input with customizable threshold to compute precision score (the same
+as accuracy score mentioned before). We demonstrate probability input to
+calculate precision score in a one-versus-the-rest sense.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">binary_precision</span>(preds_prob1[,<span class="st">&quot;None&quot;</span>], target<span class="sc">==</span><span class="st">&quot;None&quot;</span>, <span class="at">threshold=</span><span class="fl">0.40</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.9130435</span></span></code></pre></div>
+<p>Model performance in precision can be similar obtained with micro or
+macro averaging method.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>mic_p_s <span class="ot">=</span> <span class="fu">multiclass_precision</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;micro&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>mac_p_s <span class="ot">=</span> <span class="fu">multiclass_precision</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>mic_p_r <span class="ot">=</span> <span class="fu">multiclass_precision</span>(preds2, target, <span class="at">average =</span> <span class="st">&quot;micro&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>mac_p_r <span class="ot">=</span> <span class="fu">multiclass_precision</span>(preds2, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">model1 =</span> <span class="fu">c</span>(mic_p_s, mac_p_s), <span class="at">model2 =</span> <span class="fu">c</span>(mic_p_r, mac_p_r), <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Micro Average&quot;</span>, <span class="st">&quot;Macro Average&quot;</span>))</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;                  model1    model2</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; Micro Average 0.8680162 0.8753036</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.8383710 0.8998470</span></span></code></pre></div>
+</div>
+</div>
 
 
 

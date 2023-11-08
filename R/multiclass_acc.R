@@ -1,43 +1,3 @@
-#' binary_acc
-#'
-#' @description Calculate the binary class accuracy for a given predicted set of
-#' values and corresponding targets
-#'
-#' @param preds Predicted label or predicted probability between 0 and 1,
-#' same shape as target label
-#' @param target Target label
-#' @param threshold The numerical cut-off between 0 and 1 to transform
-#' predicted probability into binary predicted labels
-#' @param multidim_average Average model: global-average across all accuracies,
-#' samplewise-average across the all but the first dimensions (calculated
-#' independently for each sample)
-#'
-#' @return Binary accuracy for preds and target, with format dictated by
-#' multidim_average command.
-#'
-#' @export
-#'
-#' @examples
-#' binary_acc(c(0.8, 0.2), c(1,1), 0.3)
-#' binary_acc(c(1,1), c(0,1))
-binary_acc <- function(preds, target, threshold=0.5, multidim_average = "global"){
-
-  stopifnot(dim(preds)==dim(target))
-
-  # transform probability into labels if necessary
-  if(is.numeric(preds)&(!is.integer(preds))){
-    preds <- as.numeric(preds>threshold)
-  }
-
-  cfs_mtx <- confusion_scores(preds, target, multidim_average)
-
-  if(multidim_average == "global"){
-    return(sum(diag(cfs_mtx$matrix))/sum(cfs_mtx$matrix))
-  }
-  else{
-    return((cfs_mtx$tp+cfs_mtx$tn)/(cfs_mtx$tp+cfs_mtx$tn+cfs_mtx$fn+cfs_mtx$fp))
-  }
-}
 
 #' multiclass_acc
 #'
@@ -74,7 +34,12 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
     preds = apply(preds, 1:(length(dim(preds))-1), which.max)
   }
 
-  ele_all = unique(c(preds, target))
+  if(!is.factor(preds)){
+    ele_all <- factor(unique(c(target, as.vector(preds)))) # element in the union of two vec
+  }
+  else{
+    ele_all <- unique(c(levels(target), levels(preds1)))
+  }
   num_class = length(ele_all)
 
   stopifnot(dim(preds)[1]==dim(target)[1])
@@ -89,24 +54,24 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
       target = datamtx[(n+1):(2*n)]
     }
     else{
-      n = ncol(datamtx)/2
-      preds = datamtx[,1:n]
-      target = datamtx[,(n+1):(2*n)]
+      n <- ncol(datamtx)/2
+      preds <- datamtx[,1:n]
+      target <- datamtx[,(n+1):(2*n)]
     }
 
     if(average=="micro"){
       return(mean(preds==target))
     }
     else if(average=="macro"){
-      label_acc = numeric(num_class)
+      label_acc <- numeric(num_class)
       # label-wise accuracy calculation
       for(i in 1:num_class){
-        targetnew <- target[target==ele_all[i]]
-        predsnew <- preds[target==ele_all[i]]
+        predsnew = preds[target==ele_all[i]]
+        targetnew = target[target==ele_all[i]]
         label_acc[i] <- ifelse(length(targetnew==predsnew)>0, mean(targetnew==predsnew),0)
       }
+      return(mean(label_acc))
     }
-    return(mean(label_acc))
   }
 
   if(multidim_average=="global"){

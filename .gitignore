@@ -7,3 +7,5 @@ inst
 /Meta/
 renv
 ^\.
+.Rprofile
+^renv
