@@ -4,8 +4,8 @@ test_that("multiclass_acc function", {
   result1 = multiclass_acc(preds, target)
   expect_equal(result1, .2)
 
-  preds = c(1,1,2,1,5)
-  target = c(1,1,2,2,5)
+  preds = factor(c(1,1,2,1,5))
+  target = factor(c(1,1,2,2,5))
   result1 = multiclass_acc(preds, target)
   result2 = multiclass_acc(preds, target, average = "macro")
   expect_equal(result1, .8)

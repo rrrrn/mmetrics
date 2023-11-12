@@ -1,6 +1,6 @@
 #' multiclass_precision
 #'
-#' @description Calculate the multiclass precision value for a given predicted set of
+#' @description Calculate the multiclass recall value for a given predicted set of
 #' values and corresponding targets
 #'
 #' @param preds Predicted label with the same shape as target label, or
@@ -11,12 +11,12 @@
 #' @param average Defines the reduction that is applied over labels.
 #' Micro-sum over all class labels, that is all true positives for each class divided
 #' by all positive predicted values for each class.
-#' Macro-calculate class label-wise precision scores and then take the average.
-#' @param multidim_average Average model: global-average across all precision scores,
+#' Macro-calculate class label-wise recall scores and then take the average.
+#' @param multidim_average Average model: global-average across all recall scores,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
 #'
-#' @return Multiclass precision for preds and target, with format dictated by
+#' @return Multiclass recall for preds and target, with format dictated by
 #' multidim_average argument and average methods choice.
 #'
 #' @export
@@ -24,8 +24,8 @@
 #' @examples
 #' y_pred = matrix(c(0.1, 0.5, 0.4, 0.9, 0.2, 0.8), 2,3)
 #' y_target = c(2,1)
-#' multiclass_precision(y_pred, y_target)
-multiclass_precision <-function(preds, target, multidim_average = "global",
+#' multiclass_recall(y_pred, y_target)
+multiclass_recall <-function(preds, target, multidim_average = "global",
                                 average = "micro"){
   # transform probability into labels when necessary
   if((length(dim(preds))==length(dim(target))+1)|(length(dim(preds))>=2&is.null(dim(target)))){
@@ -65,7 +65,7 @@ multiclass_precision <-function(preds, target, multidim_average = "global",
       return((tp/sum(cfsmtx)))
     }
     else if(average=="macro"){
-      label_prec = numeric(num_class)
+      label_recall = numeric(num_class)
       if(!any(ele_all %in% c(preds, target))){
         preds = ele_all[preds]
         target = ele_all[target]
@@ -73,9 +73,9 @@ multiclass_precision <-function(preds, target, multidim_average = "global",
       # label-wise accuracy calculation
       for(i in 1:num_class){
         cfsmtx <- multiclass_confusion_scores(preds, target, classtype=ele_all[i])
-        label_prec[i] <- cfsmtx$tp/(cfsmtx$tp+cfsmtx$fp)
+        label_recall[i] <- cfsmtx$tp/(cfsmtx$tp+cfsmtx$fn)
       }
-      return(mean(label_prec))
+      return(mean(label_recall))
     }
   }
 

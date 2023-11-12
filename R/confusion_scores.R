@@ -21,6 +21,7 @@
 #' confusion_scores(y_pred, y_target)
 confusion_scores <- function(preds, target, multidim_average="global"){
   # validate binary assumption
+
   ele_all <- unique(c(target, preds)) # element in the union of two vec
   stopifnot(length(ele_all)<=2)
   stopifnot(length(target)==length(preds))
@@ -31,7 +32,7 @@ confusion_scores <- function(preds, target, multidim_average="global"){
   }
   else{
   # compute confusion matrix value
-    if(is.logical(ele_all)){
+    if(is.logical(ele_all)|all(c(1, 0) %in% ele_all)){
       ele1 = TRUE
       ele2 = FALSE
     }
@@ -39,10 +40,10 @@ confusion_scores <- function(preds, target, multidim_average="global"){
       ele1 = unique(ele_all)[1]
       ele2 = unique(ele_all)[2]
     }
-  tp = ((target == preds) & (target == ele1))
-  fn = ((target != preds) & (target == ele1))
-  fp = ((target != preds) & (target == ele2))
-  tn = ((target == preds) & (target == ele2))
+  tp = ((preds == ele1) & (target == ele1))
+  fn = ((preds == ele2) & (target == ele1))
+  fp = ((preds == ele1) & (target == ele2))
+  tn = ((preds == ele2) & (target == ele2))
 }
   # average according to multidim_average command
   if(multidim_average=="global"){
@@ -89,7 +90,7 @@ multiclass_confusion_scores <- function(preds, target, classtype=NULL,
     ele_all <- factor(unique(c(target, as.vector(preds)))) # element in the union of two vec
   }
   else{
-    ele_all <- unique(c(levels(target), levels(preds1)))
+    ele_all <- unique(c(levels(target), levels(preds)))
   }
   stopifnot(length(ele_all)>0)
   stopifnot(length(target)==length(preds))
@@ -118,6 +119,7 @@ multiclass_confusion_scores <- function(preds, target, classtype=NULL,
     return(confusion_scores(prednew, targetnew, multidim_average = multidim_average))
   }
   else{
-    errorCondition("Invalid Input")
+    message("Invalid Input")
+    return(NaN)
   }
 }

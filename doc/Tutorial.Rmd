@@ -5,6 +5,8 @@ vignette: >
   %\VignetteIndexEntry{mmetrics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{NHANES}
+  %\VignetteDepends{randomForest}
 ---
 
 ```{r, include = FALSE}
@@ -14,13 +16,182 @@ knitr::opts_chunk$set(
 )
 ```
 
+The `mmetrics` package contains functions necessary to assess classification performance for statistical modelings, in particular, when encountering multi-class classification problems or different types of averaging methods of metric computation are of interest. This vignette compares `mmetrics` functions to their R equivalents in `caret`.
+
 ```{r setup}
+rm(list = ls())
 library(mmetrics)
+library(NHANES)
+library(randomForest)
 ```
 
-This vignette compares `mmetrics` functions to their R equivalents.
+There are a range of classification metric computation customization options available for users of the package. To demonstrate this function, the NHANES data from `NHANES` will be used.
+
+In particular, we formulate our problem as building predictive modeling based on logistic regression model. The goal is to predict `Depressed` (categorical variable) from `SleepHrsNight`, `BMI`,`Poverty` and `PhysActive`, as well as demographic variable: `Age` and `Gender`.
+
+## Model fitting
+
+First we filter out participants' with NA value and partition the dataset into training and testing.
 
 ```{r}
+# filter out records with NA value
+df <- NHANES[,c("Depressed", "SleepHrsNight", "BMI", "PhysActive", "Poverty", "Age", "Gender")]
+df <- df[apply(!is.na(df), 1, all),]
 
+# split train and test set
+set.seed(345)
+n <- nrow(df)
+train_id <- sample(1:n, floor(0.8*n))
+test_id <- seq(1, n)[!(seq(1,n) %in% train_id)]
+
+train_df <- df[train_id, ]
+test_df <- df[test_id, 2:ncol(df)]
+target <- (df[test_id, ]$Depressed)
 ```
 
+Often times, we are interested in fitting more than one model and compare their performance in hope of obtaining a more predictive model. Hence, suppose we have two different random forest models under different random seed for a same classification task.
+
+```{r}
+set.seed(345)
+model1 <- randomForest(Depressed~., train_df, ntree=10, replace=FALSE)
+preds_prob1 <- (predict(model1, test_df, type = "prob"))
+preds1 <- (predict(model1, test_df))
+```
+
+```{r}
+set.seed(345)
+model2 <- randomForest(Depressed~., train_df, ntree=200,replace=FALSE)
+preds_prob2 <- (predict(model2, test_df, type = "prob"))
+preds2 <- (predict(model2, test_df))
+```
+
+
+## Model performance assessment
+
+### Accuracy
+
+To calculate classification accuracy, if there is a particular class is of interest, then `binary_acc` can be applied to calculate class-specific accuracy scores.
+
+```{r}
+e_s1 = binary_acc(preds1=="Most", target=="Most"); e_r1 = binary_acc(preds2=="Most", target=="Most")
+e_s2 = binary_acc(preds1=="Most", target=="Several"); e_r2 = binary_acc(preds2=="Most", target=="Several")
+e_s3 = binary_acc(preds1=="Most", target=="None"); e_r3 = binary_acc(preds2=="Most", target=="None")
+data.frame(model1 = c(e_s1, e_s2, e_s3), model2 = c(e_r1, e_r2, e_r3), row.names = c("Most", "Several", "None"))
+```
+
+To obtain an overall performance regarding classification accuracy, `multiclass-acc` offers two options of averaging classification performance across different class, where `micro` computes global average and `macro` computes averaged accuracies of all labels. When the ground-truth classes of target values are imbalanced, analyst should consider using `macro` average to mitigate bias introduced by dominant class. Note that in multiclass accuracy calculation, one-versus-the-rest does not apply there anymore.
+
+```{r}
+table(target)
+
+mic_e_s = multiclass_acc(preds1, target)
+mac_e_s = multiclass_acc(preds1, target, average = "macro")
+
+mic_e_r = multiclass_acc(preds2, target)
+mac_e_r = multiclass_acc(preds2, target, average = "macro")
+
+data.frame(model1 = c(mic_e_s, mac_e_s), model2 = c(mic_e_r, mac_e_r), row.names = c("Micro Average", "Macro Average"))
+```
+
+### Confusion Scores
+
+To compute the confusion matrices and corresponding scores, we can use either `confusion_scores` to obtain binary or class-specific result, or use `multiclass_confusion_scores` to get the contingency table or class-specific confusion matrices.
+
+```{r}
+## class specific
+mtx1 = confusion_scores(preds1=="Most", target=="Most")$matrix
+mtx2 = multiclass_confusion_scores(preds1, target, classtype = "Most")$matrix
+stopifnot(mtx1==mtx2); mtx1
+```
+
+Or if not specify the class, `multiclass_confusion_scores` returns a multiclass contingency table
+
+```{r}
+multiclass_confusion_scores(preds1, target)
+```
+
+### Precision scores and Recall scores
+
+To figure out how capable the model is in their positively-predicted cases, `binary_precision` carries out the computation in binary classification cases. Predicted probability can also be served as input with customizable threshold to compute precision score (the same as accuracy score mentioned before). We demonstrate probability input to calculate precision score in a one-versus-the-rest sense.
+
+```{r}
+binary_precision(preds_prob1[,"None"], target=="None", threshold=0.5)
+```
+
+Model performance in precision can be similar obtained with micro or macro averaging method.
+
+```{r}
+mic_p_s = multiclass_precision(preds1, target, average = "micro")
+mac_p_s = multiclass_precision(preds1, target, average = "macro")
+
+mic_p_r = multiclass_precision(preds2, target, average = "micro")
+mac_p_r = multiclass_precision(preds2, target, average = "macro")
+
+data.frame(model1 = c(mic_p_s, mac_p_s), model2 = c(mic_p_r, mac_p_r), row.names = c("Micro Average", "Macro Average"))
+```
+
+Similarly, recall function is designed for measuring whether a model is capable in picking out positive ground-truth labels. 
+
+```{r}
+binary_recall(preds_prob1[,"None"], target=="None", threshold=0.5)
+```
+
+Model performances in recall differ when different averaging methods are used. The lower macro score indicates that the model holds less predictive power for more prevalent labels, in particular the label "None" and possibly the label "Several".
+
+```{r}
+mic_r_s = multiclass_recall(preds1, target, average = "micro")
+mac_r_s = multiclass_recall(preds1, target, average = "macro")
+
+mic_r_r = multiclass_recall(preds2, target, average = "micro")
+mac_r_r = multiclass_recall(preds2, target, average = "macro")
+
+data.frame(model1 = c(mic_r_s, mac_r_s), model2 = c(mic_r_r, mac_r_r), row.names = c("Micro Average", "Macro Average"))
+```
+
+## Sample-wise calculation
+
+In the domain of statistical learning, sample-wise metrics may be of interest. To enable this feature, requiring `multidim_average` to be "samplewise" would be sufficient.
+
+```{r}
+set.seed(345)
+preds_samplewise = matrix(sample(0:1, 100, replace = T), 10, 10)
+target_samplewise = t(preds_samplewise)
+binary_acc(preds_samplewise, target_samplewise, multidim_average = "samplewise")
+```
+
+
+## Comparison and Benchmarking
+
+From this simple case, we get the chance of measuring a classification model's performance from various levels. 
+
+Nevertheless, we realize that there are established r packages working on a similar set of classification metric function. The goal for this section is to compare function from `mmetrics` and `Metrics`.
+
+Note that `recall` and `precision` function in `Metrics` support binary input only. We will simulate new binary data for better comparison. Furthermore, as all measurement functions in `mmetrics` calls confusion matrix functions, we only evaluate `accuracy`, `precision`, `recall` with `Metrics`.
+
+```{r}
+library(Metrics)
+library(bench)
+set.seed(345)
+preds_sim = sample(0:1, 100000, replace = T)
+set.seed(123)
+target_sim = sample(0:1, 100000, replace = T)
+
+## accuracy
+all.equal(accuracy(preds_sim, target_sim), binary_acc(preds_sim, target_sim))
+mark(accuracy(preds_sim, target_sim))
+```
+
+Accuracy computation from two packages accurately get matched with each other, though `accuracy` in `Metrics` demonstrate better performance in terms of memory use and duration time. This may attribute to the fact that more computation options are enabled in `binary_accuracy` including multidimensional average option.
+
+```{r}
+## precision
+all.equal(precision(preds_sim, target_sim), binary_precision(preds_sim, target_sim))
+all.equal(sum(preds_sim==1&target_sim==1)/sum(preds_sim==1), binary_precision(preds_sim, target_sim))
+```
+`precision` function in `Metrics` appears not to reflect the accurate result, as we validate the answer by computing from scratch.
+
+```{r}
+all.equal(recall(preds_sim, target_sim), binary_recall(preds_sim, target_sim))
+all.equal(sum(preds_sim==1&target_sim==1)/sum(target_sim==1), binary_recall(preds_sim, target_sim))
+```
+`recall` function in `Metrics` also appears not to reflect the accurate result, as we validate the answer by computing from scratch.

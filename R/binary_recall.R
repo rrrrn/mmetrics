@@ -1,4 +1,4 @@
-#' binary_precision
+#' binary_recall
 #'
 #' @description Calculate the binary classification precision for a given predicted set of
 #' values and corresponding targets. In other words, this function estimate how accurate
@@ -13,15 +13,15 @@
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
 #'
-#' @return Binary precision value for preds and target, with format dictated by
+#' @return Binary recall value for preds and target, with format dictated by
 #' multidim_average command.
 #'
 #' @export
 #'
 #' @examples
-#' binary_precision(c(0.8, 0.2), c(1,1), 0.3)
-#' binary_precision(c(1,1), c(0,1))
-binary_precision <- function(preds, target, threshold=0.5, multidim_average = "global"){
+#' binary_recall(c(0.8, 0.2), c(1,1), 0.3)
+#' binary_recall(c(1,1), c(0,1))
+binary_recall <- function(preds, target, threshold=0.5, multidim_average = "global"){
 
   stopifnot(dim(preds)==dim(target))
 
@@ -31,11 +31,8 @@ binary_precision <- function(preds, target, threshold=0.5, multidim_average = "g
   }
 
   cfs_mtx <- confusion_scores(preds, target, multidim_average)
-  if(any((cfs_mtx$tp+cfs_mtx$fp==0))){
-    message("NaN generated due to lack of positively predicted labels")
+  if(any((cfs_mtx$tp+cfs_mtx$fn==0))){
+    message("NaN generated due to lack of true positive labels")
   }
-  all_p = ((cfs_mtx$tp)+cfs_mtx$fp)
-  print(all_p)
-  print(cfs_mtx$tp)
-  return((cfs_mtx$tp)/all_p)
+  return((cfs_mtx$tp)/(cfs_mtx$tp+cfs_mtx$fn))
 }

@@ -377,19 +377,19 @@ dataset into training and testing.</p>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>train_df <span class="ot">&lt;-</span> df[train_id, ]</span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>test_df <span class="ot">&lt;-</span> df[test_id, <span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(df)]</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>target <span class="ot">&lt;-</span> df[test_id, <span class="dv">1</span>]</span></code></pre></div>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>target <span class="ot">&lt;-</span> (df[test_id, ]<span class="sc">$</span>Depressed)</span></code></pre></div>
 <p>Often times, we are interested in fitting more than one model and
 compare their performance in hope of obtaining a more predictive model.
 Hence, suppose we have two different random forest models under
 different random seed for a same classification task.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>model1 <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df, <span class="at">ntree=</span><span class="dv">10</span>, <span class="at">replace=</span><span class="cn">FALSE</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>preds_prob1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>preds1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, test_df)</span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>preds_prob1 <span class="ot">&lt;-</span> (<span class="fu">predict</span>(model1, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>preds1 <span class="ot">&lt;-</span> (<span class="fu">predict</span>(model1, test_df))</span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Depressed<span class="sc">~</span>., train_df, <span class="at">ntree=</span><span class="dv">200</span>,<span class="at">replace=</span><span class="cn">FALSE</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>preds_prob2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model2, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>preds2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(model2, test_df)</span></code></pre></div>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>preds_prob2 <span class="ot">&lt;-</span> (<span class="fu">predict</span>(model2, test_df, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>))</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>preds2 <span class="ot">&lt;-</span> (<span class="fu">predict</span>(model2, test_df))</span></code></pre></div>
 </div>
 <div id="model-performance-assessment" class="section level2">
 <h2>Model performance assessment</h2>
@@ -429,7 +429,7 @@ does not apply there anymore.</p>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">model1 =</span> <span class="fu">c</span>(mic_e_s, mac_e_s), <span class="at">model2 =</span> <span class="fu">c</span>(mic_e_r, mac_e_r), <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Micro Average&quot;</span>, <span class="st">&quot;Macro Average&quot;</span>))</span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;                  model1    model2</span></span>
 <span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; Micro Average 0.8680162 0.8753036</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.0000000 0.0000000</span></span></code></pre></div>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.5837367 0.6041179</span></span></code></pre></div>
 </div>
 <div id="confusion-scores" class="section level3">
 <h3>Confusion Scores</h3>
@@ -453,16 +453,18 @@ returns a multiclass contingency table</p>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;   Several   15      84    6</span></span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;   Most       1       3   21</span></span></code></pre></div>
 </div>
-<div id="precision-scores" class="section level3">
-<h3>Precision scores</h3>
+<div id="precision-scores-and-recall-scores" class="section level3">
+<h3>Precision scores and Recall scores</h3>
 <p>To figure out how capable the model is in their positively-predicted
 cases, <code>binary_precision</code> carries out the computation in
 binary classification cases. Predicted probability can also be served as
 input with customizable threshold to compute precision score (the same
 as accuracy score mentioned before). We demonstrate probability input to
 calculate precision score in a one-versus-the-rest sense.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">binary_precision</span>(preds_prob1[,<span class="st">&quot;None&quot;</span>], target<span class="sc">==</span><span class="st">&quot;None&quot;</span>, <span class="at">threshold=</span><span class="fl">0.40</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.9130435</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">binary_precision</span>(preds_prob1[,<span class="st">&quot;None&quot;</span>], target<span class="sc">==</span><span class="st">&quot;None&quot;</span>, <span class="at">threshold=</span><span class="fl">0.5</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; [1] 1094</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; [1] 964</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.88117</span></span></code></pre></div>
 <p>Model performance in precision can be similar obtained with micro or
 macro averaging method.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>mic_p_s <span class="ot">=</span> <span class="fu">multiclass_precision</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;micro&quot;</span>)</span>
@@ -475,7 +477,92 @@ macro averaging method.</p>
 <span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;                  model1    model2</span></span>
 <span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; Micro Average 0.8680162 0.8753036</span></span>
 <span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.8383710 0.8998470</span></span></code></pre></div>
+<p>Similarly, recall function is designed for measuring whether a model
+is capable in picking out positive ground-truth labels.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">binary_recall</span>(preds_prob1[,<span class="st">&quot;None&quot;</span>], target<span class="sc">==</span><span class="st">&quot;None&quot;</span>, <span class="at">threshold=</span><span class="fl">0.5</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.9806714</span></span></code></pre></div>
+<p>Model performances in recall differ when different averaging methods
+are used. The lower macro score indicates that the model holds less
+predictive power for more prevalent labels, in particular the label
+“None” and possibly the label “Several”.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>mic_r_s <span class="ot">=</span> <span class="fu">multiclass_recall</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;micro&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>mac_r_s <span class="ot">=</span> <span class="fu">multiclass_recall</span>(preds1, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>mic_r_r <span class="ot">=</span> <span class="fu">multiclass_recall</span>(preds2, target, <span class="at">average =</span> <span class="st">&quot;micro&quot;</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>mac_r_r <span class="ot">=</span> <span class="fu">multiclass_recall</span>(preds2, target, <span class="at">average =</span> <span class="st">&quot;macro&quot;</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">model1 =</span> <span class="fu">c</span>(mic_r_s, mac_r_s), <span class="at">model2 =</span> <span class="fu">c</span>(mic_r_r, mac_r_r), <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Micro Average&quot;</span>, <span class="st">&quot;Macro Average&quot;</span>))</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt;                  model1    model2</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; Micro Average 0.8680162 0.8753036</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; Macro Average 0.5837367 0.6041179</span></span></code></pre></div>
 </div>
+</div>
+<div id="sample-wise-calculation" class="section level2">
+<h2>Sample-wise calculation</h2>
+<p>In the domain of statistical learning, sample-wise metrics may be of
+interest. To enable this feature, requiring
+<code>multidim_average</code> to be “samplewise” would be
+sufficient.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>preds_samplewise <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">100</span>, <span class="at">replace =</span> T), <span class="dv">10</span>, <span class="dv">10</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>target_samplewise <span class="ot">=</span> <span class="fu">t</span>(preds_samplewise)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">binary_acc</span>(preds_samplewise, target_samplewise, <span class="at">multidim_average =</span> <span class="st">&quot;samplewise&quot;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt;  [1] 0.5 0.4 0.3 0.4 0.4 0.5 0.4 0.4 0.4 0.7</span></span></code></pre></div>
+</div>
+<div id="comparison-and-benchmarking" class="section level2">
+<h2>Comparison and Benchmarking</h2>
+<p>From this simple case, we get the chance of measuring a
+classification model’s performance from various levels.</p>
+<p>Nevertheless, we realize that there are established r packages
+working on a similar set of classification metric function. The goal for
+this section is to compare function from <code>mmetrics</code> and
+<code>Metrics</code>.</p>
+<p>Note that <code>recall</code> and <code>precision</code> function in
+<code>Metrics</code> support binary input only. We will simulate new
+binary data for better comparison. Furthermore, as all measurement
+functions in <code>mmetrics</code> calls confusion matrix functions, we
+only evaluate <code>accuracy</code>, <code>precision</code>,
+<code>recall</code> with <code>Metrics</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">library</span>(bench)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>preds_sim <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">100000</span>, <span class="at">replace =</span> T)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>target_sim <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">100000</span>, <span class="at">replace =</span> T)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="do">## accuracy</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">accuracy</span>(preds_sim, target_sim), <span class="fu">binary_acc</span>(preds_sim, target_sim))</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="fu">mark</span>(<span class="fu">accuracy</span>(preds_sim, target_sim))</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 6</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;   expression                           min   median `itr/sec` mem_alloc `gc/sec`</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;   &lt;bch:expr&gt;                      &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; 1 accuracy(preds_sim, target_sim)    304µs    350µs     2831.     391KB     29.3</span></span></code></pre></div>
+<p>Accuracy computation from two packages accurately get matched with
+each other, though <code>accuracy</code> in <code>Metrics</code>
+demonstrate better performance in terms of memory use and duration time.
+This may attribute to the fact that more computation options are enabled
+in <code>binary_accuracy</code> including multidimensional average
+option.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="do">## precision</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">precision</span>(preds_sim, target_sim), <span class="fu">binary_precision</span>(preds_sim, target_sim))</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; [1] 49929</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; [1] 24826</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Mean relative difference: 0.00180256&quot;</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">sum</span>(preds_sim<span class="sc">==</span><span class="dv">1</span><span class="sc">&amp;</span>target_sim<span class="sc">==</span><span class="dv">1</span>)<span class="sc">/</span><span class="fu">sum</span>(preds_sim<span class="sc">==</span><span class="dv">1</span>), <span class="fu">binary_precision</span>(preds_sim, target_sim))</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; [1] 49929</span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; [1] 24826</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p><code>precision</code> function in <code>Metrics</code> appears not
+to reflect the accurate result, as we validate the answer by computing
+from scratch.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">recall</span>(preds_sim, target_sim), <span class="fu">binary_recall</span>(preds_sim, target_sim))</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Mean relative difference: 0.001805815&quot;</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">sum</span>(preds_sim<span class="sc">==</span><span class="dv">1</span><span class="sc">&amp;</span>target_sim<span class="sc">==</span><span class="dv">1</span>)<span class="sc">/</span><span class="fu">sum</span>(target_sim<span class="sc">==</span><span class="dv">1</span>), <span class="fu">binary_recall</span>(preds_sim, target_sim))</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p><code>recall</code> function in <code>Metrics</code> also appears not
+to reflect the accurate result, as we validate the answer by computing
+from scratch.</p>
 </div>
 
 

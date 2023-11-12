@@ -10,7 +10,7 @@ test_that("binary accuracy function", {
   expect_equal(binary_acc(pred, target, 0.4), 1)
 
   # samplewise
-  pred = matrix(c(1,0,1,0),2,2)
+  pred = matrix(c(1,0,1,0),2,2, T)
   target = t(pred)
   expect_equal(binary_acc(pred, target, multidim_average = "samplewise"), c(0.5,0.5))
 })

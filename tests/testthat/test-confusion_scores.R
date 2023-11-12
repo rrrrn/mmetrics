@@ -26,8 +26,8 @@ test_that("multiclass confusion_scores", {
   result = multiclass_confusion_scores(preds, target)
   expect_equal(all(diag(result)==0), TRUE)
 
-  preds = rep("A", 4)
-  target = rep("B", 4)
+  preds = factor(rep("A", 4))
+  target = factor(rep("B", 4))
   result = multiclass_confusion_scores(preds, target)
   expect_equal(all(diag(result)==0), TRUE)
 
@@ -45,4 +45,6 @@ test_that("multiclass confusion_scores", {
   target = preds
   result = multiclass_confusion_scores(preds, target)
   expect_equal(result[[1]], 4)
+  result = multiclass_confusion_scores(preds, target, multidim_average="samplewise")
+  expect_equal(result, NaN)
 })

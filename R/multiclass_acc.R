@@ -38,7 +38,7 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
     ele_all <- factor(unique(c(target, as.vector(preds)))) # element in the union of two vec
   }
   else{
-    ele_all <- unique(c(levels(target), levels(preds1)))
+    ele_all <- unique(c(levels(target), levels(preds)))
   }
   num_class = length(ele_all)
 
@@ -66,8 +66,8 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
       label_acc <- numeric(num_class)
       # label-wise accuracy calculation
       for(i in 1:num_class){
-        predsnew = preds[target==ele_all[i]]
-        targetnew = target[target==ele_all[i]]
+        predsnew = preds[target==i]
+        targetnew = target[target==i]
         label_acc[i] <- ifelse(length(targetnew==predsnew)>0, mean(targetnew==predsnew),0)
       }
       return(mean(label_acc))
