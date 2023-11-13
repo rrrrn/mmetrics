@@ -94,23 +94,57 @@ target_samplewise = t(preds_samplewise)
 binary_acc(preds_samplewise, target_samplewise, multidim_average = "samplewise")
 
 ## -----------------------------------------------------------------------------
-library(Metrics)
+library(caret)
 library(bench)
 set.seed(345)
 preds_sim = sample(0:1, 100000, replace = T)
+preds_sim_fac = factor(preds_sim, levels = c(1,0))
 set.seed(123)
 target_sim = sample(0:1, 100000, replace = T)
+target_sim_fac = factor(target_sim, levels = c(1,0))
+
+cfs = confusionMatrix(preds_sim_fac, target_sim_fac)
 
 ## accuracy
-all.equal(accuracy(preds_sim, target_sim), binary_acc(preds_sim, target_sim))
-mark(accuracy(preds_sim, target_sim))
+all.equal(cfs[["overall"]][["Accuracy"]], binary_acc(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["overall"]][["Accuracy"]]
+  }
+}
+test.acc = function(){
+  for(i in 1:100){
+    binary_acc(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.acc())
 
 ## -----------------------------------------------------------------------------
 ## precision
-all.equal(precision(preds_sim, target_sim), binary_precision(preds_sim, target_sim))
-all.equal(sum(preds_sim==1&target_sim==1)/sum(preds_sim==1), binary_precision(preds_sim, target_sim))
+all.equal(cfs[["byClass"]][["Pos Pred Value"]], binary_precision(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["byClass"]][["Pos Pred Value"]]
+  }
+}
+test.precision = function(){
+  for(i in 1:100){
+    binary_precision(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.precision())
 
 ## -----------------------------------------------------------------------------
-all.equal(recall(preds_sim, target_sim), binary_recall(preds_sim, target_sim))
-all.equal(sum(preds_sim==1&target_sim==1)/sum(target_sim==1), binary_recall(preds_sim, target_sim))
+all.equal(cfs[["byClass"]][["Sensitivity"]], binary_recall(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["byClass"]][["Sensitivity"]]
+  }
+}
+test.recall = function(){
+  for(i in 1:100){
+    binary_recall(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.recall())
 

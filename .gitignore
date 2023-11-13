@@ -8,3 +8,4 @@ renv
 ^\.
 .Rprofile
 ^renv
+/doc/

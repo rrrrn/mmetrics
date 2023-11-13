@@ -164,34 +164,68 @@ binary_acc(preds_samplewise, target_samplewise, multidim_average = "samplewise")
 
 From this simple case, we get the chance of measuring a classification model's performance from various levels. 
 
-Nevertheless, we realize that there are established r packages working on a similar set of classification metric function. The goal for this section is to compare function from `mmetrics` and `Metrics`.
+Nevertheless, we realize that there are established r packages working on a similar set of classification metric function. The goal for this section is to compare function from `mmetrics` and `caret`.
 
-Note that `recall` and `precision` function in `Metrics` support binary input only. We will simulate new binary data for better comparison. Furthermore, as all measurement functions in `mmetrics` calls confusion matrix functions, we only evaluate `accuracy`, `precision`, `recall` with `Metrics`.
+Note that `recall` and `precision` function in `caret` support factor input only. As all measurement functions in `mmetrics` calls confusion matrix functions, and that confusion matrix computation from two packages return different format of output, evaluating `mmetrics::accuracy`, `mmetrics::precision`, `mmetrics::recall` with `caret`'s function can indirectly give us a sufficient sense of the correctness of `mmetrics::confusion_scores` function. Furthermore, `caret` 
 
 ```{r}
-library(Metrics)
+library(caret)
 library(bench)
 set.seed(345)
 preds_sim = sample(0:1, 100000, replace = T)
+preds_sim_fac = factor(preds_sim, levels = c(1,0))
 set.seed(123)
 target_sim = sample(0:1, 100000, replace = T)
+target_sim_fac = factor(target_sim, levels = c(1,0))
+
+cfs = confusionMatrix(preds_sim_fac, target_sim_fac)
 
 ## accuracy
-all.equal(accuracy(preds_sim, target_sim), binary_acc(preds_sim, target_sim))
-mark(accuracy(preds_sim, target_sim))
+all.equal(cfs[["overall"]][["Accuracy"]], binary_acc(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["overall"]][["Accuracy"]]
+  }
+}
+test.acc = function(){
+  for(i in 1:100){
+    binary_acc(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.acc())
 ```
 
-Accuracy computation from two packages accurately get matched with each other, though `accuracy` in `Metrics` demonstrate better performance in terms of memory use and duration time. This may attribute to the fact that more computation options are enabled in `binary_accuracy` including multidimensional average option.
+Accuracy computation from two packages accurately get matched with each other and they achieve comparable duration time. Nevertheless, retrieving accuracy information in `caret` takes up less run-time memory use. This may attribute to the fact that more computation options are enabled in `binary_accuracy` including multidimensional average option.
 
 ```{r}
 ## precision
-all.equal(precision(preds_sim, target_sim), binary_precision(preds_sim, target_sim))
-all.equal(sum(preds_sim==1&target_sim==1)/sum(preds_sim==1), binary_precision(preds_sim, target_sim))
+all.equal(cfs[["byClass"]][["Pos Pred Value"]], binary_precision(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["byClass"]][["Pos Pred Value"]]
+  }
+}
+test.precision = function(){
+  for(i in 1:100){
+    binary_precision(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.precision())
 ```
-`precision` function in `Metrics` appears not to reflect the accurate result, as we validate the answer by computing from scratch.
+Although requiring less iteration, our function takes a slight more time and memory usage. The potential reason would be our function calls confusion scores function that allows flexibility of averaging methods, thus adding up the computation time.
 
 ```{r}
-all.equal(recall(preds_sim, target_sim), binary_recall(preds_sim, target_sim))
-all.equal(sum(preds_sim==1&target_sim==1)/sum(target_sim==1), binary_recall(preds_sim, target_sim))
+all.equal(cfs[["byClass"]][["Sensitivity"]], binary_recall(preds_sim, target_sim))
+test.cfs = function(){
+  for(i in 1:100){
+    confusionMatrix(preds_sim_fac, target_sim_fac)[["byClass"]][["Sensitivity"]]
+  }
+}
+test.recall = function(){
+  for(i in 1:100){
+    binary_recall(preds_sim, target_sim)
+  }
+}
+mark(test.cfs(), test.recall())
 ```
-`recall` function in `Metrics` also appears not to reflect the accurate result, as we validate the answer by computing from scratch.
+Our computation produces accurate and robust answer, taking comparable run-time and but requesting more memory usage. 

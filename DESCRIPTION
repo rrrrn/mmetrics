@@ -1,11 +1,10 @@
 Package: mmetrics
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Multiclass classification metrics
 Version: 0.1.0
 Author: Rui Nie (ruinie@umich.edu)
 Maintainer: Rui Nie <ruinie@umich.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: This package contains classification metric functions that accommodate multiclass classification problem settings and enable sample-wise metric calculation, which enlarge the package's application realm.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -16,7 +15,7 @@ Suggests:
     testthat (>= 3.0.0),
       NHANES,
   randomForest,
-  Metrics,
+  caret,
   bench
 VignetteBuilder: knitr
 Config/testthat/edition: 3

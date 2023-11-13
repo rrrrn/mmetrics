@@ -35,7 +35,5 @@ binary_precision <- function(preds, target, threshold=0.5, multidim_average = "g
     message("NaN generated due to lack of positively predicted labels")
   }
   all_p = ((cfs_mtx$tp)+cfs_mtx$fp)
-  print(all_p)
-  print(cfs_mtx$tp)
   return((cfs_mtx$tp)/all_p)
 }
