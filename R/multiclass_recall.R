@@ -32,19 +32,20 @@ multiclass_recall <-function(preds, target, multidim_average = "global",
     # the last dimension always be the probabilities for each class
     preds = apply(preds, 1:(length(dim(preds))-1), which.max)
   }
-
-  # validate the multiclass assumption
-  ele_all <- unique(c(preds, target))
-  num_class <- length(ele_all)
+  # retrieve all unique labels occurred in prediction and target labels
+  if(!is.factor(preds)){
+    fact=FALSE
+    ele_all <- (unique(c(target, as.vector(preds)))) # element in the union of two vec
+  }
+  else{
+    fact=TRUE
+    ele_all <- unique(c(levels(target), levels(preds)))
+  }
+  num_class = length(ele_all)
 
   stopifnot(dim(preds)[1]==dim(target)[1])
   stopifnot(dim(preds)==dim(target))
   stopifnot(num_class>0)
-
-  if(length(ele_all)==1){
-    tp <- length(preds)
-    tn <- fp <- fn <-0
-  }
 
   # generalized steps for computing scores
   comp_assist = function(datamtx, average){
@@ -59,20 +60,17 @@ multiclass_recall <-function(preds, target, multidim_average = "global",
       target = datamtx[,(n+1):(2*n)]
     }
 
-    if(average=="micro"){
+    if(average=="micro"|length(ele_all)==1){
       cfsmtx <- multiclass_confusion_scores(preds, target)
       tp <- sum(diag(cfsmtx))
       return((tp/sum(cfsmtx)))
     }
     else if(average=="macro"){
       label_recall = numeric(num_class)
-      if(!any(ele_all %in% c(preds, target))){
-        preds = ele_all[preds]
-        target = ele_all[target]
-      }
       # label-wise accuracy calculation
       for(i in 1:num_class){
-        cfsmtx <- multiclass_confusion_scores(preds, target, classtype=ele_all[i])
+        classtype = ifelse(fact, i, ele_all[i])
+        cfsmtx <- multiclass_confusion_scores(preds, target, classtype=classtype)
         label_recall[i] <- cfsmtx$tp/(cfsmtx$tp+cfsmtx$fn)
       }
       return(mean(label_recall))
@@ -83,6 +81,11 @@ multiclass_recall <-function(preds, target, multidim_average = "global",
     return(comp_assist(cbind(preds,target), average))
   }
   else if(multidim_average=="samplewise"){
-    return(apply(cbind(preds,target), 1, comp_assist, average = average))
+    result = apply(cbind(preds,target), 1, comp_assist, average = average)
+    return(result)
+  }
+  else{
+    message("Incompatible multidim-average mode")
+    return(NA)
   }
 }

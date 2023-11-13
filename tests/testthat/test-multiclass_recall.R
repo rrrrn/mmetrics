@@ -4,8 +4,8 @@ test_that("multiclass_recall", {
   result1 = multiclass_recall(preds, target)
   expect_equal(result1, .2)
 
-  preds = c(1,1,2,1,5)
-  target = c(1,1,2,2,5)
+  preds = factor(c(1,1,2,1,5), levels = c(1,2,5))
+  target = factor(c(1,1,2,2,5), levels = c(1,2,5))
   result1 = multiclass_recall(preds, target)
   result2 = multiclass_recall(preds, target, average = "macro")
   expect_equal(result1, .8)
@@ -27,4 +27,11 @@ test_that("multiclass_recall", {
   target = preds
   result = multiclass_recall(preds, target)
   expect_equal(result, 1)
+  result = multiclass_recall(preds, target, multidim_average = "None")
+  expect_equal(result, NA)
+
+  preds = array(c(1:6), dim = c(1,2,3))/10
+  target = array(c(1,3), dim = c(1,2))
+  result = multiclass_recall(preds, target)
+  expect_equal(result, 0.5)
 })

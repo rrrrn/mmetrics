@@ -34,6 +34,7 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
     preds = apply(preds, 1:(length(dim(preds))-1), which.max)
   }
 
+  # retrieve all unique labels occurred in prediction and target labels
   if(!is.factor(preds)){
     ele_all <- factor(unique(c(target, as.vector(preds)))) # element in the union of two vec
   }
@@ -59,6 +60,7 @@ multiclass_acc <- function(preds, target, multidim_average = "global",
       target <- datamtx[,(n+1):(2*n)]
     }
 
+    # average methods with regard to multiclass labels
     if(average=="micro"){
       return(mean(preds==target))
     }
