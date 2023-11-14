@@ -18,9 +18,11 @@ mmetrics is a grammar of metrics calculation, providing a consistent set of func
 
 -   recall function (`binary_recall` and `multiclass_recall`) measures the completeness of positive predictions.
 
+-   f1 score computation (`binary_f1` and `multiclass_f1`) gives a balanced view of precision and recall scores, reflecting how well a classification model is to assign each observation to their corresponding calss.
+
 ## Installation
 
-``` R
+``` r
 install.packages("mmetrics")
 ```
 

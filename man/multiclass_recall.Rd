@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiclass_recall.R
 \name{multiclass_recall}
 \alias{multiclass_recall}
-\title{multiclass_precision}
+\title{multiclass_recall}
 \usage{
 multiclass_recall(
   preds,
@@ -16,8 +16,7 @@ multiclass_recall(
 predicted probability between 0 and 1 for each class that has one
 additional dimension compared with target label}
 
-\item{target}{Target label that has been transformed into dinstinct integers
-to refer to each class}
+\item{target}{Target label}
 
 \item{multidim_average}{Average model: global-average across all recall scores,
 samplewise-average across the all but the first dimensions (calculated

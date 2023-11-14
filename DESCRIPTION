@@ -16,6 +16,7 @@ Suggests:
       NHANES,
   randomForest,
   caret,
-  bench
+  bench,
+  MLmetrics
 VignetteBuilder: knitr
 Config/testthat/edition: 3

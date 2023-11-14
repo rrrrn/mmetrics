@@ -15,7 +15,7 @@ same shape as target label}
 \item{threshold}{The numerical cut-off between 0 and 1 to transform
 predicted probability into binary predicted labels}
 
-\item{multidim_average}{Average model: global-average across all accuracies,
+\item{multidim_average}{Average model: global-average across all computed recall scores,
 samplewise-average across the all but the first dimensions (calculated
 independently for each sample)}
 }
@@ -24,9 +24,9 @@ Binary recall value for preds and target, with format dictated by
 multidim_average command.
 }
 \description{
-Calculate the binary classification precision for a given predicted set of
-values and corresponding targets. In other words, this function estimate how accurate
-the true prediction value by the model is.
+Calculate the binary classification recall for a given predicted set of
+values and corresponding targets. In other words, this function estimate the
+sensitivity of the model prediction.
 }
 \examples{
 binary_recall(c(0.8, 0.2), c(1,1), 0.3)

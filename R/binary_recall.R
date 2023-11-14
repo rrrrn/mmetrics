@@ -1,15 +1,15 @@
 #' binary_recall
 #'
-#' @description Calculate the binary classification precision for a given predicted set of
-#' values and corresponding targets. In other words, this function estimate how accurate
-#' the true prediction value by the model is.
+#' @description Calculate the binary classification recall for a given predicted set of
+#' values and corresponding targets. In other words, this function estimate the
+#' sensitivity of the model prediction.
 #'
 #' @param preds Predicted labels or predicted probability between 0 and 1,
 #' same shape as target label
 #' @param target Target label
 #' @param threshold The numerical cut-off between 0 and 1 to transform
 #' predicted probability into binary predicted labels
-#' @param multidim_average Average model: global-average across all accuracies,
+#' @param multidim_average Average model: global-average across all computed recall scores,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
 #'

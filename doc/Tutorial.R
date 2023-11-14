@@ -38,6 +38,9 @@ preds_prob2 <- (predict(model2, test_df, type = "prob"))
 preds2 <- (predict(model2, test_df))
 
 ## -----------------------------------------------------------------------------
+rm(model1, model2)
+
+## -----------------------------------------------------------------------------
 e_s1 = binary_acc(preds1=="Most", target=="Most"); e_r1 = binary_acc(preds2=="Most", target=="Most")
 e_s2 = binary_acc(preds1=="Most", target=="Several"); e_r2 = binary_acc(preds2=="Most", target=="Several")
 e_s3 = binary_acc(preds1=="Most", target=="None"); e_r3 = binary_acc(preds2=="Most", target=="None")
@@ -86,6 +89,18 @@ mic_r_r = multiclass_recall(preds2, target, average = "micro")
 mac_r_r = multiclass_recall(preds2, target, average = "macro")
 
 data.frame(model1 = c(mic_r_s, mac_r_s), model2 = c(mic_r_r, mac_r_r), row.names = c("Micro Average", "Macro Average"))
+
+## -----------------------------------------------------------------------------
+binary_f1(preds_prob1[,"None"], target=="None", threshold=0.5)
+
+## -----------------------------------------------------------------------------
+mic_f_s = multiclass_f1(preds1, target, average = "micro")
+mac_f_s = multiclass_f1(preds1, target, average = "macro")
+
+mic_f_r = multiclass_f1(preds2, target, average = "micro")
+mac_f_r = multiclass_f1(preds2, target, average = "macro")
+
+data.frame(model1 = c(mic_f_s, mac_f_s), model2 = c(mic_f_r, mac_f_r), row.names = c("Micro Average", "Macro Average"))
 
 ## -----------------------------------------------------------------------------
 set.seed(345)
@@ -147,4 +162,19 @@ test.recall = function(){
   }
 }
 mark(test.cfs(), test.recall())
+
+## -----------------------------------------------------------------------------
+library(MLmetrics)
+all.equal(F1_Score(preds_sim_fac, target_sim_fac), binary_f1(preds_sim, target_sim))
+test.mlmetrics = function(){
+  for(i in 1:100){
+    F1_Score(preds_sim_fac, target_sim_fac)
+  }
+}
+test.recall = function(){
+  for(i in 1:100){
+    binary_f1(preds_sim, target_sim)
+  }
+}
+mark(test.mlmetrics(), test.recall())
 

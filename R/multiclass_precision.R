@@ -6,8 +6,7 @@
 #' @param preds Predicted label with the same shape as target label, or
 #' predicted probability between 0 and 1 for each class that has one
 #' additional dimension compared with target label
-#' @param target Target label that has been transformed into dinstinct integers
-#' to refer to each class
+#' @param target Target label
 #' @param average Defines the reduction that is applied over labels.
 #' Micro-sum over all class labels, that is all true positives for each class divided
 #' by all positive predicted values for each class.
@@ -54,7 +53,6 @@ multiclass_precision <-function(preds, target, multidim_average = "global",
     tn <- fp <- fn <-0
     return(1)
   }
-  print(preds)
 
   # generalized steps for computing scores
   comp_assist = function(datamtx, average){
@@ -93,5 +91,8 @@ multiclass_precision <-function(preds, target, multidim_average = "global",
   else if(multidim_average=="samplewise"){
     return(apply(cbind(preds,target),
                  1, comp_assist, average = average))
+  }
+  else{
+
   }
 }

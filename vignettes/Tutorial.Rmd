@@ -65,6 +65,10 @@ preds_prob2 <- (predict(model2, test_df, type = "prob"))
 preds2 <- (predict(model2, test_df))
 ```
 
+```{r}
+rm(model1, model2)
+```
+
 
 ## Model performance assessment
 
@@ -130,7 +134,7 @@ mac_p_r = multiclass_precision(preds2, target, average = "macro")
 data.frame(model1 = c(mic_p_s, mac_p_s), model2 = c(mic_p_r, mac_p_r), row.names = c("Micro Average", "Macro Average"))
 ```
 
-Similarly, recall function is designed for measuring whether a model is capable in picking out positive ground-truth labels. 
+Similarly, recall function is designed for measuring whether a model is capable in picking out positive ground-truth labels, i.e. calculating the sensitivity of the classification model. 
 
 ```{r}
 binary_recall(preds_prob1[,"None"], target=="None", threshold=0.5)
@@ -147,6 +151,25 @@ mac_r_r = multiclass_recall(preds2, target, average = "macro")
 
 data.frame(model1 = c(mic_r_s, mac_r_s), model2 = c(mic_r_r, mac_r_r), row.names = c("Micro Average", "Macro Average"))
 ```
+## F1 scores
+
+F1-score as the geometric average for recall score and precision score, reflects the overall capability of a classification model (mainly binary, but the concept can also be applied to a multiclass problem) in classifying each observation to their corresponding class.
+
+```{r}
+binary_f1(preds_prob1[,"None"], target=="None", threshold=0.5)
+```
+Compare the result with the one we obtained in the previous section, we see the f1 score balances both precision and recall scores in terms of magnitude.
+
+```{r}
+mic_f_s = multiclass_f1(preds1, target, average = "micro")
+mac_f_s = multiclass_f1(preds1, target, average = "macro")
+
+mic_f_r = multiclass_f1(preds2, target, average = "micro")
+mac_f_r = multiclass_f1(preds2, target, average = "macro")
+
+data.frame(model1 = c(mic_f_s, mac_f_s), model2 = c(mic_f_r, mac_f_r), row.names = c("Micro Average", "Macro Average"))
+```
+
 
 ## Sample-wise calculation
 
@@ -195,7 +218,7 @@ test.acc = function(){
 mark(test.cfs(), test.acc())
 ```
 
-Accuracy computation from two packages accurately get matched with each other and they achieve comparable duration time. Nevertheless, retrieving accuracy information in `caret` takes up less run-time memory use. This may attribute to the fact that more computation options are enabled in `binary_accuracy` including multidimensional average option.
+- Accuracy computation from two packages accurately get matched with each other and they achieve comparable duration time. Nevertheless, retrieving accuracy information in `caret` takes up less run-time memory use. This may attribute to the fact that more computation options are enabled in `binary_accuracy` including multidimensional average option.
 
 ```{r}
 ## precision
@@ -212,7 +235,7 @@ test.precision = function(){
 }
 mark(test.cfs(), test.precision())
 ```
-Although requiring less iteration, our function takes a slight more time and memory usage. The potential reason would be our function calls confusion scores function that allows flexibility of averaging methods, thus adding up the computation time.
+- Although requiring less iteration, our function takes a comparable but slight more time and memory usage. The potential reason would be our function calls confusion scores function that allows flexibility of averaging methods, thus adding up the computation time.
 
 ```{r}
 all.equal(cfs[["byClass"]][["Sensitivity"]], binary_recall(preds_sim, target_sim))
@@ -228,4 +251,23 @@ test.recall = function(){
 }
 mark(test.cfs(), test.recall())
 ```
-Our computation produces accurate and robust answer, taking comparable run-time and but requesting more memory usage. 
+
+- Our computation produces accurate and robust answer, taking comparable run-time and but requesting more memory usage. 
+
+```{r}
+library(MLmetrics)
+all.equal(F1_Score(preds_sim_fac, target_sim_fac), binary_f1(preds_sim, target_sim))
+test.mlmetrics = function(){
+  for(i in 1:100){
+    F1_Score(preds_sim_fac, target_sim_fac)
+  }
+}
+test.recall = function(){
+  for(i in 1:100){
+    binary_f1(preds_sim, target_sim)
+  }
+}
+mark(test.mlmetrics(), test.recall())
+```
+
+`MLmetrics` package has an equivalent function computing on the same metrics. Our methods significantly outperforms the existing function in terms of run-time and memory allocation.

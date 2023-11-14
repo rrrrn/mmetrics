@@ -1,4 +1,3 @@
-
 test_that("multiclass_precision", {
   preds = seq(1, 5)
   target = rep(2, 5)
@@ -28,4 +27,6 @@ test_that("multiclass_precision", {
   target = preds
   result = multiclass_precision(preds, target)
   expect_equal(result, 1)
+  result = multiclass_recall(preds, target, multidim_average = "None")
+  expect_equal(result, NA)
 })

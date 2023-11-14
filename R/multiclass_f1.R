@@ -1,6 +1,6 @@
-#' multiclass_recall
+#' multiclass_f1
 #'
-#' @description Calculate the multiclass recall value for a given predicted set of
+#' @description Calculate the multiclass f1 value for a given predicted set of
 #' values and corresponding targets
 #'
 #' @param preds Predicted label with the same shape as target label, or
@@ -10,12 +10,12 @@
 #' @param average Defines the reduction that is applied over labels.
 #' Micro-sum over all class labels, that is all true positives for each class divided
 #' by all positive predicted values for each class.
-#' Macro-calculate class label-wise recall scores and then take the average.
-#' @param multidim_average Average model: global-average across all recall scores,
+#' Macro-calculate class label-wise f1 scores and then take the average.
+#' @param multidim_average Average model: global-average across all f1 scores,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
 #'
-#' @return Multiclass recall for preds and target, with format dictated by
+#' @return Multiclass f1-score for preds and target, with format dictated by
 #' multidim_average argument and average methods choice.
 #'
 #' @export
@@ -23,14 +23,15 @@
 #' @examples
 #' y_pred = matrix(c(0.1, 0.5, 0.4, 0.9, 0.2, 0.8), 2,3)
 #' y_target = c(2,1)
-#' multiclass_recall(y_pred, y_target)
-multiclass_recall <-function(preds, target, multidim_average = "global",
-                                average = "micro"){
+#' multiclass_f1(y_pred, y_target)
+multiclass_f1 <-function(preds, target, multidim_average = "global",
+                             average = "micro"){
   # transform probability into labels when necessary
   if((length(dim(preds))==length(dim(target))+1)|(length(dim(preds))>=2&is.null(dim(target)))){
     # the last dimension always be the probabilities for each class
     preds = apply(preds, 1:(length(dim(preds))-1), which.max)
   }
+
   # retrieve all unique labels occurred in prediction and target labels
   if(!is.factor(preds)){
     fact=FALSE
@@ -65,14 +66,16 @@ multiclass_recall <-function(preds, target, multidim_average = "global",
       return((tp/sum(cfsmtx)))
     }
     else if(average=="macro"){
-      label_recall = numeric(num_class)
+      label_f1 = numeric(num_class)
       # label-wise accuracy calculation
       for(i in 1:num_class){
         classtype = ifelse(fact, i, ele_all[i])
         cfsmtx <- multiclass_confusion_scores(preds, target, classtype=classtype)
-        label_recall[i] <- cfsmtx$tp/(cfsmtx$tp+cfsmtx$fn)
+        recallscore = cfsmtx$tp/(cfsmtx$tp+cfsmtx$fn)
+        precisscore = cfsmtx$tp/(cfsmtx$tp+cfsmtx$fp)
+        label_f1[i] <- 2*recallscore*precisscore/(recallscore+precisscore)
       }
-      return(mean(label_recall))
+      return(mean(label_f1))
     }
   }
 

@@ -1,6 +1,6 @@
-#' binary_precision
+#' binary_f1
 #'
-#' @description Calculate the binary classification precision for a given predicted set of
+#' @description Calculate the binary classification f1-score for a given predicted set of
 #' values and corresponding targets. In other words, this function estimate how accurate
 #' the true prediction value by the model is.
 #'
@@ -9,19 +9,19 @@
 #' @param target Target label
 #' @param threshold The numerical cut-off between 0 and 1 to transform
 #' predicted probability into binary predicted labels
-#' @param multidim_average Average model: global-average across all precision values,
+#' @param multidim_average Average model: global-average across all f1s,
 #' samplewise-average across the all but the first dimensions (calculated
 #' independently for each sample)
 #'
-#' @return Binary precision value for preds and target, with format dictated by
+#' @return f1score value for binary preds and target input, with format dictated by
 #' multidim_average command.
 #'
 #' @export
 #'
 #' @examples
-#' binary_precision(c(0.8, 0.2), c(1,1), 0.3)
-#' binary_precision(c(1,1), c(0,1))
-binary_precision <- function(preds, target, threshold=0.5, multidim_average = "global"){
+#' binary_f1(c(0.8, 0.2), c(1,1), 0.3)
+#' binary_f1(c(1,1), c(0,1))
+binary_f1 <- function(preds, target, threshold=0.5, multidim_average = "global"){
 
   stopifnot(dim(preds)==dim(target))
 
@@ -31,9 +31,18 @@ binary_precision <- function(preds, target, threshold=0.5, multidim_average = "g
   }
 
   cfs_mtx <- confusion_scores(preds, target, multidim_average)
-  if(any((cfs_mtx$tp+cfs_mtx$fp==0))){
+  # handle exceptions
+  if(any((cfs_mtx$tp+cfs_mtx$fn==0))){
+    message("NaN generated due to lack of true positive labels")
+  }
+  else if(any((cfs_mtx$tp+cfs_mtx$fp==0))){
     message("NaN generated due to lack of positively predicted labels")
   }
-  all_p = ((cfs_mtx$tp)+cfs_mtx$fp)
-  return((cfs_mtx$tp)/all_p)
+  else if(any(cfs_mtx$tp==0)){
+    message("NaN generated due to lack of accurately positive predicted positive labels")
+  }
+  recall = (cfs_mtx$tp)/(cfs_mtx$tp+cfs_mtx$fn)
+  precis = (cfs_mtx$tp)/(cfs_mtx$tp+cfs_mtx$fp)
+
+  return(2*recall*precis/(precis+recall))
 }
